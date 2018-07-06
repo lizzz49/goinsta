@@ -162,6 +162,45 @@ func (inst *Instagram) Export(path string) error {
 	return ioutil.WriteFile(path, bytes, 0644)
 }
 
+func (inst *Instagram)GetConfigFile()ConfigFile{
+	url, _ := neturl.Parse(goInstaAPIUrl)
+
+	config := ConfigFile{
+		ID:        inst.Account.ID,
+		User:      inst.user,
+		DeviceID:  inst.dID,
+		UUID:      inst.uuid,
+		RankToken: inst.rankToken,
+		Token:     inst.token,
+		PhoneID:   inst.pid,
+		Cookies:   inst.c.Jar.Cookies(url),
+	}
+	return config
+}
+
+func ImportFromConfigFile(config ConfigFile,proxy string)*Instagram{
+	url, _ := neturl.Parse(goInstaAPIUrl)
+	inst := &Instagram{
+		user:      config.User,
+		dID:       config.DeviceID,
+		uuid:      config.UUID,
+		rankToken: config.RankToken,
+		token:     config.Token,
+		pid:       config.PhoneID,
+		c: &http.Client{},
+	}
+	if proxy != ""{
+		inst.SetProxy(proxy,true)
+	}
+	inst.c.Jar, _ = cookiejar.New(nil)
+	inst.c.Jar.SetCookies(url, config.Cookies)
+
+	inst.init()
+	inst.Account = &Account{inst: inst, ID: config.ID}
+	inst.Account.Sync()
+
+	return inst
+}
 // Import imports instagram configuration
 //
 // This function does not set proxy automatically. Use SetProxy after this call.

@@ -799,7 +799,7 @@ func (media *FeedMedia) Next(params ...interface{}) bool {
 }
 
 // UploadPhoto post image from io.Reader to instagram.
-func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, quality int, filterType int) (Item, error) {
+func (inst *Instagram) UploadPhoto(photo io.Reader, photoCaption string, quality int, filterType int) (Item, error) {
 	out := Item{}
 
 	uploadID := time.Now().Unix()
@@ -809,8 +809,8 @@ func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, qualit
 	w := multipart.NewWriter(&b)
 
 	w.WriteField("upload_id", strconv.FormatInt(uploadID, 10))
-	w.WriteField("_uuid", insta.uuid)
-	w.WriteField("_csrftoken", insta.token)
+	w.WriteField("_uuid", inst.uuid)
+	w.WriteField("_csrftoken", inst.token)
 
 	var compression = map[string]interface{}{
 		"lib_name":    "jt",
@@ -846,7 +846,7 @@ func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, qualit
 	req.Header.Set("Connection", "close")
 	req.Header.Set("User-Agent", goInstaUserAgent)
 
-	resp, err := insta.c.Do(req)
+	resp, err := inst.c.Do(req)
 	if err != nil {
 		return out, err
 	}
@@ -896,12 +896,12 @@ func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, qualit
 			"source_height": height,
 		},
 	}
-	data, err := insta.prepareData(config)
+	data, err := inst.prepareData(config)
 	if err != nil {
 		return out, err
 	}
 
-	body, err = insta.sendRequest(&reqOptions{
+	body, err = inst.sendRequest(&reqOptions{
 		Endpoint: "media/configure/?",
 		Query:    generateSignature(data),
 		IsPost:   true,

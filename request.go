@@ -37,15 +37,15 @@ type reqOptions struct {
 	Query map[string]string
 }
 
-func (insta *Instagram) sendSimpleRequest(uri string, a ...interface{}) (body []byte, err error) {
-	return insta.sendRequest(
+func (inst *Instagram) sendSimpleRequest(uri string, a ...interface{}) (body []byte, err error) {
+	return inst.sendRequest(
 		&reqOptions{
 			Endpoint: fmt.Sprintf(uri, a...),
 		},
 	)
 }
 
-func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
+func (inst *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 	method := "GET"
 	if o.IsPost {
 		method = "POST"
@@ -99,16 +99,16 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 	req.Header.Set("X-IG-Bandwidth-TotalBytes-B", "0")
 	req.Header.Set("X-IG-Bandwidth-TotalTime-MS", "0")
 
-	resp, err := insta.c.Do(req)
+	resp, err := inst.c.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	u, _ = url.Parse(goInstaAPIUrl)
-	for _, value := range insta.c.Jar.Cookies(u) {
+	for _, value := range inst.c.Jar.Cookies(u) {
 		if strings.Contains(value.Name, "csrftoken") {
-			insta.token = value.Value
+			inst.token = value.Value
 		}
 	}
 
@@ -144,13 +144,13 @@ func isError(code int, body []byte) (err error) {
 	return nil
 }
 
-func (insta *Instagram) prepareData(other ...map[string]interface{}) (string, error) {
+func (inst *Instagram) prepareData(other ...map[string]interface{}) (string, error) {
 	data := map[string]interface{}{
-		"_uuid":      insta.uuid,
-		"_csrftoken": insta.token,
+		"_uuid":      inst.uuid,
+		"_csrftoken": inst.token,
 	}
-	if insta.Account != nil && insta.Account.ID != 0 {
-		data["_uid"] = strconv.FormatInt(insta.Account.ID, 10)
+	if inst.Account != nil && inst.Account.ID != 0 {
+		data["_uid"] = strconv.FormatInt(inst.Account.ID, 10)
 	}
 
 	for i := range other {
@@ -165,10 +165,10 @@ func (insta *Instagram) prepareData(other ...map[string]interface{}) (string, er
 	return "", err
 }
 
-func (insta *Instagram) prepareDataQuery(other ...map[string]interface{}) map[string]string {
+func (inst *Instagram) prepareDataQuery(other ...map[string]interface{}) map[string]string {
 	data := map[string]string{
-		"_uuid":      insta.uuid,
-		"_csrftoken": insta.token,
+		"_uuid":      inst.uuid,
+		"_csrftoken": inst.token,
 	}
 	for i := range other {
 		for key, value := range other[i] {
